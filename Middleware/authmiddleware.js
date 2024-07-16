@@ -24,7 +24,8 @@ export const verifyJWT = async(req,res,next)=>{
         req.user = user;
         next();
     } catch (error) {
-        res.status(400).json({ message: error.message || 'Invalid Access Token' });
+
+        res.status(405).json({ message: error.message || 'Invalid Access Token' });
     }
     
 }

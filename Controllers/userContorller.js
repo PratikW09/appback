@@ -107,7 +107,7 @@ export const loginUser = async (req, res) => {
     // console.log(user);
 
     res.status(200).cookie("accessToken",accessToken,option)
-    .cookie("refreshToken",refreshToken,option).json({ message: 'Login successful', accessToken, refreshToken });
+    .cookie("refreshToken",refreshToken,option).json({ message: 'Login successful',user, accessToken, refreshToken });
   } catch (error) {
     // console.log(error.message)
     res.status(500).json({ message: 'Server error', error: error.message });

@@ -12,18 +12,23 @@ const blogSchema = new Schema({
     type: String, 
     required: true 
   },
+  author: {
+    type: String,
+    required: true
+  },
   content: { 
     type: String, 
     required: true 
   },
+  tags: {
+    type: [String], // Define tags as an array of strings
+    default: [] // Default value is an empty array
+  },
   likesCount: {
     type: Number,
-    default: 0,
-  },
-  
-},{timestamps:true});
-
-
+    default: 0
+  }
+}, { timestamps: true });
 
 const Blog = mongoose.model('Blog', blogSchema);
 export default Blog;

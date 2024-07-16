@@ -41,7 +41,7 @@ const likeBlog = async (req, res) => {
     //   console.log(2);
       await blog.save();
     //   console.log("hii", blog);
-  
+      // console.log("likes",)
       res.status(201).json({ message: 'Blog post liked successfully', like: newLike, blog });
     } catch (error) {
       console.error("Error liking the blog post:", error);
@@ -49,10 +49,23 @@ const likeBlog = async (req, res) => {
     }
   };
 
+  const getAllLikes = async (req, res) => {
+    try {
+      // Fetch all likes from the database
+      const likes = await Like.find();
+  
+      // Return the likes array
+      res.status(201).json({ message: 'All likes array', likes: likes });
+    } catch (error) {
+      console.error("Error fetching likes:", error);
+      res.status(500).json({ message: 'Server error', error: error.message });
+    }
+  };
 
 // Controller function to create a new blog post
  const createBlog = async (req, res) => {
-    const { title, content } = req.body;
+    const { title, content,author,tags } = req.body;
+    // console.log(req.body);
     // console.log(title, content)
   
     // Validate the input
@@ -71,7 +84,9 @@ const likeBlog = async (req, res) => {
       const newBlog = new Blog({
         user_id: userId,
         title,
-        content
+        content,
+        author,
+        tags
       });
   
       // Save the blog post to the database
@@ -86,9 +101,12 @@ const likeBlog = async (req, res) => {
 
 
 
- const updateBlog = async (req, res) => {
-    const { title, content } = req.body;
-    const blogId = req.params.id; // Assuming the blog ID is passed in the URL parameters
+  const updateBlog = async (req, res) => {
+    const { title, content, tags, author } = req.body;
+    const blogId = req.params.blogid;
+  
+    // console.log(req.body);
+    // console.log(blogId);
   
     // Validate the input
     if (!title || !content) {
@@ -102,17 +120,32 @@ const likeBlog = async (req, res) => {
         return res.status(404).json({ message: 'Blog post not found' });
       }
   
+      // console.log(blog);
+  
       // Check if the requesting user is the owner of the blog post
-      if (blog.user_id !== req.cookies.userId) {
+      const token = req.cookies.accessToken;
+      if (!token) {
+        return res.status(401).json({ message: 'No token provided, user is not logged in' });
+      }
+  
+      const userId = await decodeToken(token);
+      if (blog.user_id.toString() !== userId.toString()) {  // Ensure user IDs are compared correctly
         return res.status(403).json({ message: 'You are not authorized to update this blog post' });
       }
   
       // Update the blog post fields
       blog.title = title;
       blog.content = content;
+      if (tags) {
+        blog.tags = tags;
+      }
+      if (author) {
+        blog.author = author;
+      }
   
       // Save the updated blog post
       await blog.save();
+      // console.log(blog);
   
       res.status(200).json({ message: 'Blog post updated successfully', blog });
     } catch (error) {
@@ -120,9 +153,10 @@ const likeBlog = async (req, res) => {
     }
   };
   
+  
 
- const deleteBlog = async (req, res) => {
-    const blogId = req.params.id; // Assuming the blog ID is passed in the URL parameters
+  const getPostById = async (req, res) => {
+    const blogId = req.params.blogid; // Assuming the blog ID is passed in the URL parameters
   
     try {
       // Find the blog post by ID
@@ -131,16 +165,44 @@ const likeBlog = async (req, res) => {
         return res.status(404).json({ message: 'Blog post not found' });
       }
   
-      // Check if the requesting user is the owner of the blog post
-      if (blog.user_id !== req.cookies.userId) {
+      // Respond with the blog post
+      res.status(200).json({ blog });
+    } catch (error) {
+      res.status(500).json({ message: 'Server error', error: error.message });
+    }
+  };
+  
+  const deleteBlog = async (req, res) => {
+    const blogId = req.params.blogid; // Assuming the blog ID is passed in the URL parameters
+    // console.log("Delete post", blogId);
+  
+    try {
+      // Find the blog post by ID
+      const blog = await Blog.findById(blogId);
+      if (!blog) {
+        return res.status(404).json({ message: 'Blog post not found' });
+      }
+      // console.log("Blog found:", blog);
+  
+      const token = req.cookies.accessToken;
+      if (!token) {
+        return res.status(401).json({ message: 'No token provided, user is not logged in' });
+      }
+  
+      const userId = await decodeToken(token);
+      if (String(blog.user_id) !== String(userId)) {
+        // console.log("Unauthorized user");
         return res.status(403).json({ message: 'You are not authorized to delete this blog post' });
       }
   
       // Delete the blog post
-      await blog.remove();
+      // console.log("Deleting blog post");
+      await blog.deleteOne();
+      // console.log("Blog post deleted");
   
-      res.status(200).json({ message: 'Blog post deleted successfully' });
+      res.status(200).json({ message: 'Blog post deleted successfully', blog });
     } catch (error) {
+      console.error("Server error:", error);
       res.status(500).json({ message: 'Server error', error: error.message });
     }
   };
@@ -184,6 +246,6 @@ const likeBlog = async (req, res) => {
     }
   };
   
-  export {likeBlog,deleteBlog,updateBlog,createBlog,getUserPosts,getAllPosts
+  export {getAllLikes,likeBlog,deleteBlog,updateBlog,createBlog,getUserPosts,getAllPosts,getPostById
     
 };
