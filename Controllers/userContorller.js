@@ -40,7 +40,8 @@ export const registerUser = async (req, res) => {
     // console.log(newUser)
 
     res.status(201).cookie("accessToken",accessToken,option)
-    .cookie("refreshToken",refreshToken,option).json({ message: 'User registered successfully', accessToken, refreshToken });
+    .cookie("refreshToken",refreshToken,option).json({ message: 'User registered successfully',user:newUser
+      , accessToken, refreshToken });
   } catch (error) {
     console.log(error,error.message)
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -97,6 +98,7 @@ export const loginUser = async (req, res) => {
     }
 
     // Generate new access and refresh tokens
+    // console.log(user)
     const { accessToken, refreshToken } = generateTokens(user);
     user.refreshToken = refreshToken;
     await user.save();

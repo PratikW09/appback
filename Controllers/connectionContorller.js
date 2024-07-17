@@ -58,6 +58,7 @@ export const sendConnectionRequest = async (req, res) => {
   const senderId = await decodeToken(req.cookies.accessToken);
 
   console.log(receiverId)  
+  console.log(senderId)  
   try {
     // Check if a connection already exists
     const existingConnection = await ConnectionAndChat.findOne({
@@ -69,7 +70,7 @@ export const sendConnectionRequest = async (req, res) => {
     if (existingConnection) {
       return res.status(400).json({ message: 'Connection request already sent or accepted' });
     }
-    console.log(1);
+    console.log("1");
     // Create a new connection request
     const newConnection = await new ConnectionAndChat({
       participants: [senderId, receiverId],
@@ -78,8 +79,8 @@ export const sendConnectionRequest = async (req, res) => {
 
     console.log(newConnection)
     await newConnection.save();
-    console.log(newConnection)
-    res.status(201).json({ message: 'Connection request sent successfully', connection: newConnection });
+    console.log("new",newConnection)
+    res.status(200).json({ message: 'Connection request sent successfully', connection: newConnection });
   } catch (error) {
     console.log(error)
     res.status(500).json({ message: 'Server error', error: error.message });
@@ -190,7 +191,7 @@ export const getUserFriends = async (req, res) => {
 
     // Find user details for all friends
     const friends = await User.find({ _id: { $in: friendIds } }, 'username email');
-
+    console.log("friend list ",friends)
     res.status(200).json({ friends });
   } catch (error) {
     console.error('Error fetching friends:', error);
